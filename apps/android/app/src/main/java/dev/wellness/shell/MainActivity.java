@@ -10,18 +10,21 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
-import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import java.io.IOException;
 
-// Native shell around the coach screen served by packages/agent/src/server.ts.
-// The phone reaches the PC through `adb reverse tcp:8787 tcp:8787`, so the URL is the phone's own localhost.
+// Native shell around the coach screen. The screen ships inside the APK (assets/web, copied from docs/mockups at
+// build time) and is served from a fixed https origin that only this app answers, so nothing outside the APK can
+// become "our page" and reach window.Native. The PC server is used only as an API, through WebBridge.api, sealed
+// with the pairing key (packages/agent/src/pairing.ts).
 public class MainActivity extends Activity {
-  static final String ORIGIN = "http://localhost:8787";
-  static final String APP_URL = ORIGIN + "/";
-  static final String OFFLINE_URL = "file:///android_asset/offline.html";
+  static final String HOST = "appassets.androidplatform.net"; // reserved for in-app content; never resolves to a server
+  static final String WEB_ROOT = "https://" + HOST + "/web/";
+  static final String APP_URL = WEB_ROOT + "floating-coach.html?app=1";
   WebView web;
   WebBridge bridge;
 
@@ -32,21 +35,28 @@ public class MainActivity extends Activity {
     web = new WebView(this);
     web.getSettings().setJavaScriptEnabled(true);
     web.getSettings().setDomStorageEnabled(true);
+    web.getSettings().setAllowFileAccess(false);
+    web.getSettings().setAllowContentAccess(false);
     web.setWebViewClient(new WebViewClient() {
       @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
         Uri u = r.getUrl();
-        String s = u.getScheme();
-        if ("tel".equals(s)) { startActivity(new Intent(Intent.ACTION_DIAL, u)); return true; } // 109 / 119 buttons
+        if ("tel".equals(u.getScheme())) { startActivity(new Intent(Intent.ACTION_DIAL, u)); return true; } // 109 / 119 buttons
         if (isApp(u.toString())) return false;
-        if ("file".equals(s)) return false;
         startActivity(new Intent(Intent.ACTION_VIEW, u)); // anything else opens outside the app, away from the bridge
         return true;
       }
-      // The bridge answers only while our own page is shown: exact origin, not any localhost port.
-      @Override public void onPageStarted(WebView v, String url, android.graphics.Bitmap icon) { bridge.trusted = isApp(url); }
-      @Override public void onReceivedError(WebView v, WebResourceRequest r, WebResourceError e) {
-        if (r.isForMainFrame()) v.loadUrl(OFFLINE_URL); // server off or adb reverse missing
+      // Requests to the in-app origin are answered from assets/web; everything else on that host is refused.
+      @Override public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
+        Uri u = r.getUrl();
+        if (!HOST.equals(u.getHost())) return null;
+        String path = u.getPath();
+        if (!"https".equals(u.getScheme()) || path == null || !path.startsWith("/web/") || path.contains("..")) return notFound();
+        try {
+          return new WebResourceResponse(mime(path), path.endsWith(".png") || path.endsWith(".jpg") ? null : "utf-8", getAssets().open(path.substring(1)));
+        } catch (IOException e) { return notFound(); }
       }
+      // The bridge answers only while our own page is shown.
+      @Override public void onPageStarted(WebView v, String url, android.graphics.Bitmap icon) { bridge.trusted = isApp(url); }
     });
     // targetSdk 35+ draws edge to edge: keep the page clear of the status bar, navigation bar and keyboard.
     // The padding goes on a container because WebView ignores its own padding when laying out the page.
@@ -68,7 +78,22 @@ public class MainActivity extends Activity {
     if (Build.VERSION.SDK_INT >= 29) ask(new String[] { Manifest.permission.ACTIVITY_RECOGNITION }); // step sensor
   }
 
-  static boolean isApp(String url) { return url != null && url.startsWith(APP_URL); }
+  static boolean isApp(String url) { return url != null && url.startsWith(WEB_ROOT); }
+
+  static String mime(String path) {
+    if (path.endsWith(".html")) return "text/html";
+    if (path.endsWith(".js")) return "text/javascript";
+    if (path.endsWith(".png")) return "image/png";
+    if (path.endsWith(".jpg")) return "image/jpeg";
+    if (path.endsWith(".css")) return "text/css";
+    return "application/octet-stream";
+  }
+
+  static WebResourceResponse notFound() {
+    WebResourceResponse r = new WebResourceResponse("text/plain", "utf-8", null);
+    r.setStatusCodeAndReasonPhrase(404, "Not Found");
+    return r;
+  }
 
   void ask(String[] perms) { runOnUiThread(() -> requestPermissions(perms, 1)); }
 

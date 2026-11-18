@@ -39,11 +39,13 @@ Node 23.6 이상이 필요합니다(`.ts`를 빌드 없이 실행).
 npm install
 npm test                                   # 전체 테스트
 npm run demo -- "이번 주 운동 어땠어?"      # 데모 사용자로 한 번 묻기 (규칙만 사용)
-node packages/agent/src/server.ts          # 서버: http://127.0.0.1:8787
+node packages/agent/src/server.ts          # 서버: http://127.0.0.1:8787 (앱과 짝 맞춘 봉인 API)
 ```
 
 로컬 모델(d1-2B, LFM3)을 쓰는 방법은 [docs/MODELS.md](docs/MODELS.md),
 WSL에서 서버를 띄우고 안드로이드 앱을 붙이는 방법은 [docs/DESIGN.md](docs/DESIGN.md)의 6단계를 보세요.
+
+안드로이드 앱은 PC 서버와 **짝을 맞춘 뒤에만** 데이터를 주고받습니다(AES-256-GCM 봉인). 앱을 설치하고 폰을 연결한 뒤 `npm run pair`를 한 번 실행하세요. 데스크톱 브라우저로 화면만 시험할 때는 `INSECURE_DEV=1 node packages/agent/src/server.ts`로 켭니다.
 
 공공데이터를 다시 받으려면 공공데이터포털 · 식품안전나라 인증키를 직접 발급받아야 합니다. 키는 git에서 제외된 로컬 파일에 두며 저장소에 넣지 않습니다.
 

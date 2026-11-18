@@ -167,22 +167,30 @@ diet-coach의 상태 구조(`profile`, `days[YYYY-MM-DD]`)를 바탕으로 넓�
 
 ```
 휴대폰  apps/android  (Java WebView 껍데기, 의존성 없음)
-   │  http://localhost:8787  ← adb reverse로 PC에 연결. LAN에는 아무 포트도 열지 않는다.
+   │  화면: APK 안 assets/web (https://appassets.androidplatform.net/web/, 앱만 응답하는 주소)
+   │  API: Native.api → AES-256-GCM으로 봉인 → http://localhost:8787  ← adb reverse로 PC에 연결
    ▼
 WSL Ubuntu  packages/agent/src/server.ts  (node:http, 127.0.0.1:8787)
-   ├─ GET  /           시안 화면을 앱 모드로 (docs/mockups/floating-coach.html?app=1)
+   ├─ POST /api/*      봉인된 요청만 받는다. 짝 맞춘 키(.pairing-key)가 없으면 401
    ├─ POST /api/chat   { text } → { reply, flag, checkin, intents }  그래프 한 번 실행
    ├─ d1-2B   Docker :8081   (미러 네트워크라 WSL의 localhost = PC의 localhost)
    └─ LFM3    Ollama :11434
 ```
 
 1. 처음 한 번: `bash tools/wsl/install-node.sh` (WSL 안, sudo 없이 `~/.local/node`에 설치)
-2. 서버: `DECISION_BACKEND=d1 LLM_MODEL=wellness-lfm3 bash tools/wsl/serve.sh` (변수를 빼면 규칙만으로 판정)
-3. 폰 연결(USB 또는 무선 디버깅): `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe reverse tcp:8787 tcp:8787`
-4. 앱: Android Studio로 `apps/android`를 열어 실행하거나 `apps/android/gradlew assembleDebug`
+2. 서버: `DECISION_BACKEND=d1 LLM_MODEL=wellness-lfm3 bash tools/wsl/serve.sh` (변수를 빼면 규칙만으로 판정). 처음 켤 때 저장소 루트에 짝 키 `.pairing-key`를 만든다(git 제외).
+3. 앱: Android Studio로 `apps/android`를 열어 실행하거나 `apps/android/gradlew assembleDebug` (빌드할 때 `docs/mockups`의 화면을 APK에 복사)
+4. 짝 맞추기(폰마다 한 번, 앱을 지웠다 깔면 다시): 폰을 USB나 무선 디버깅으로 연결하고 PC에서 `npm run pair`. 키를 `adb shell run-as`로 앱 전용 저장소에 넣고 `adb reverse tcp:8787 tcp:8787`도 건다.
+
+**보안 구조 (2026-11-19)**
+- 화면은 PC 서버가 아니라 APK 안에서 연다. 폰 기능 다리(`window.Native`)는 그 화면에서만 답한다. 그래서 폰의 다른 앱이 8787 포트를 먼저 차지해도 GPS · 마이크에 손댈 수 없다.
+- API는 짝 키로 봉인한다(`packages/agent/src/pairing.ts`, `WebBridge.api`). 요청에는 시각과 1회용 값(nonce)이 들어가고, 서버는 2분 넘은 요청과 같은 nonce의 재전송을 거절한다. 답도 같은 키로 봉인하고 nonce를 담아 돌려주며, 앱은 확인하지 못한 답을 버린다("서버 응답을 확인하지 못했어요").
+- 짝 키는 `run-as`로만 넣는다. adb를 쥔 사람만 할 수 있고 다른 앱은 앱 전용 저장소에 쓸 수 없다. 디버그 빌드에서만 되는 방법이라, 배포용 빌드는 QR 같은 다른 짝 맞추기가 필요하다.
+- 키가 없으면 PC의 다른 프로그램도 API를 쓸 수 없다. 데스크톱 브라우저로 화면을 시험할 때만 `INSECURE_DEV=1`로 서버를 켠다(평문 API, 폰과 함께 쓰지 않는다).
+- 확인(에뮬레이터 API 37): 짝 맞춘 뒤 정상 동작. 서버를 끄고 가짜 서버를 8787에 띄우자 가짜 서버가 받은 것은 읽을 수 없는 바이트뿐이었고(한글·JSON 없음), 앱은 가짜 답(걸음 99,999 등)을 모두 버렸다. 화면 페이지에서 `http://localhost:8787`로 직접 요청하는 것은 브라우저가 막는다.
 
 - 앱 모드(`?app=1`): 설명 패널과 상태 버튼을 숨기고 폰 테두리 없이 전체 화면으로 띄운다. 대화 탭 입력이 진짜 입력칸이 되어 `/api/chat`을 부른다. 자해 위기 판정이면 guard의 고정 답변과 상담 카드를 띄우고, "지금 109에 연락하기"는 `tel:109`로 전화 앱을 연다. 마이크 버튼은 7단계 전까지 숨긴다.
-- 서버가 꺼져 있으면 껍데기가 앱 안의 `offline.html`(연결 방법과 109 안내)을 띄운다.
+- 서버가 꺼져 있거나 짝을 맞추지 않았으면 화면은 그대로 열리고, 숫자 대신 이유를 알려 준다(짝 맞추기 필요 / 서버 연결 안 됨 / 응답 확인 실패).
 - 사용자와 저장: 앱이 만든 무작위 기기 ID(`x-device`)마다 사용자 하나. `packages/agent/src/store.ts`가 SQLite(`node:sqlite`, 의존성 없음)에 JSON 문서로 둔다. WSL에서는 DB를 리눅스 홈(`~/.local/share/wellness-agent/`)에 둔다. `/mnt/c`에서는 SQLite 잠금이 믿을 만하지 않다. 새 사용자는 빈 기록으로 시작하고 키·몸무게는 임시값(170cm, 65kg)이다.
 - 실제 숫자(`GET /api/today`, `app.js`): 홈의 걸음 챌린지, 근력 띠, 운동 순위, 산책 화면의 이번 주 통계, 근력 화면의 회복도. 식단 추천과 물은 3단계 전까지 "예시" 표시.
 - 산책 기록: `WalkService`(포그라운드 서비스, GPS). 정확도 30m 넘는 점, 30초 넘게 끊긴 구간, 초속 0.5m 미만(쉼)과 4m 초과(GPS 튐)는 거리에서 뺀다. 50m 미만은 저장하지 않는다. 서버에 못 보낸 기록은 폰에 두었다가 다음 실행 때 보낸다.

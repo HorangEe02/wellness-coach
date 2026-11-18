@@ -71,7 +71,8 @@
       "tools/data/fetch.test.mjs"
     ],
     "packages/agent/src/server.ts": [
-      "packages/agent/test/server.test.ts"
+      "packages/agent/test/server.test.ts",
+      "packages/agent/test/pairing.test.ts"
     ],
     "docs/mockups/floating-coach.html": [
       "packages/agent/test/server.test.ts"
@@ -90,6 +91,9 @@
     ],
     "tools/data/compare-foods.mjs": [
       "tools/data/build-foods.test.mjs"
+    ],
+    "packages/agent/src/pairing.ts": [
+      "packages/agent/test/pairing.test.ts"
     ]
   }
 }

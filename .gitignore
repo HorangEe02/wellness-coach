@@ -17,3 +17,8 @@ data-raw/
 
 # built standalone mockup (node tools/mockup/build-standalone.mjs)
 docs/mockups/dist/
+
+# server <-> app pairing key (packages/agent/src/pairing.ts); never commit
+.pairing-key
+# copied from docs/mockups at build time (apps/android/app/build.gradle syncWeb)
+apps/android/app/src/main/assets/web/

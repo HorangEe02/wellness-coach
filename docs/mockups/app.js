@@ -12,7 +12,29 @@ const DEVICE = (() => {
   try { return localStorage.getItem('device') || (localStorage.setItem('device', crypto.randomUUID()), localStorage.getItem('device')); }
   catch { return crypto.randomUUID(); }
 })();
+// In the Android app the call goes through Native.api, which seals it with the pairing key; in a browser (desktop
+// development with INSECURE_DEV, or the demo) it is a plain fetch.
+const LINK_MSG = {
+  unpaired: 'PC와 짝 맞추기가 필요해요. PC에서 npm run pair 를 실행해 주세요',
+  unreachable: 'PC 서버에 연결하지 못했어요. 서버와 USB 연결(adb reverse)을 확인해 주세요',
+  unverified: '서버 응답을 확인하지 못했어요. 다른 프로그램이 8787 포트를 쓰고 있을 수 있어요',
+};
+const pending = new Map();
+let seq = 0;
+window.__nativeApi = (id, status, text) => {
+  const p = pending.get(id);
+  if (!p) return;
+  pending.delete(id);
+  if (status === 0) return p.reject(Object.assign(new Error(LINK_MSG[text] ?? text), { link: text }));
+  const j = JSON.parse(text);
+  status === 200 ? p.resolve(j) : p.reject(new Error(j?.error ?? `HTTP ${status}`));
+};
 const api = async (path, body) => {
+  if (N?.api) return new Promise((resolve, reject) => {
+    const id = ++seq;
+    pending.set(id, { resolve, reject });
+    N.api(id, body === undefined ? 'GET' : 'POST', '/api/' + path, DEVICE, body === undefined ? '' : JSON.stringify(body));
+  });
   const r = await fetch('/api/' + path, body === undefined ? { headers: { 'x-device': DEVICE } }
     : { method: 'POST', headers: { 'x-device': DEVICE, 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const j = await r.json();
@@ -58,10 +80,14 @@ function fillPage() {
     showWalk();
   }
 }
+let lastLink = null;
 async function refresh() {
   const [t, s] = await Promise.allSettled([api('today'), api('strength')]); // offline: keep what is shown
   if (t.status === 'fulfilled') T = t.value;
   if (s.status === 'fulfilled') SP = s.value;
+  const link = t.status === 'rejected' && t.reason.link;
+  if (link && link !== lastLink) toast(LINK_MSG[link] ?? t.reason.message); // say once why the numbers are missing
+  lastLink = link;
   fillHome(); fillPage();
   if (page === 'strength' && !live) drawStrength();
 }
@@ -224,7 +250,7 @@ async function askCoach(text) {
       BODY.crisis = `${me(esc(text))}<div class="alert" role="alert"><h4>지금 이야기를 들어 줄 곳이 있어요</h4><p>${html}</p></div>${HELP}`;
       log += bot(html); BODY.chat = log; busy = false; set('crisis'); speak(plain); return;
     }
-  } catch { html = plain = '서버에 연결하지 못했어요. 잠시 뒤 다시 보내 주세요.'; }
+  } catch (e) { html = plain = e.link ? LINK_MSG[e.link] ?? e.message : '서버에 연결하지 못했어요. 잠시 뒤 다시 보내 주세요.'; }
   log += bot(html); BODY.chat = log; busy = false; render(); speak(plain);
 }
 window.onNativeSpeech = text => { if (ov === 'voice') set('chat'); askCoach(text); };

@@ -10,3 +10,11 @@ android {
     versionName '0.1'
   }
 }
+
+// The coach screen ships inside the APK: copy it from docs/mockups on every build (assets/web is git-ignored).
+// Only what the app needs: no design notes images in full size, no demo data.
+tasks.register('syncWeb', Sync) {
+  from(file("$rootDir/../../docs/mockups")) { include 'floating-coach.html', 'app.js', 'img/web/**' }
+  into "$projectDir/src/main/assets/web"
+}
+preBuild.dependsOn 'syncWeb'

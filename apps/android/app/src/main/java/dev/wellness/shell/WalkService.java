@@ -27,6 +27,8 @@ public class WalkService extends Service implements LocationListener {
   static final float MAX_MPS = 4f;          // faster than a brisk run: a GPS jump, not walking
   Location last;
 
+  static final String STOP = "dev.wellness.shell.STOP_WALK";
+
   static void reset() { start = System.currentTimeMillis(); distM = 0; activeSec = 0; }
 
   @Override public int onStartCommand(Intent intent, int flags, int id) {
@@ -36,7 +38,10 @@ public class WalkService extends Service implements LocationListener {
     PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
     Notification n = new Notification.Builder(this, ch).setContentTitle("산책 기록 중").setContentText("앱을 열어 끝낼 수 있어요")
       .setSmallIcon(android.R.drawable.ic_menu_mylocation).setOngoing(true).setContentIntent(open).build();
+    // Always promote first, even for a stop: a foreground service that ends before startForeground() crashes the app
+    // (ForegroundServiceDidNotStartInTimeException, seen when "stop" was tapped right after "start").
     if (Build.VERSION.SDK_INT >= 29) startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION); else startForeground(1, n);
+    if (STOP.equals(intent == null ? null : intent.getAction())) { stopSelf(); return START_NOT_STICKY; }
     last = null;
     try {
       getSystemService(LocationManager.class).requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 3, this, Looper.getMainLooper());

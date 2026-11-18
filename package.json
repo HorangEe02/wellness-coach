@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "test": "npm test --workspaces --if-present && node --test infra/infra.test.ts tools/data/fetch.test.mjs tools/data/build-foods.test.mjs",
-    "demo": "npm run demo -w @wellness/agent --"
+    "demo": "npm run demo -w @wellness/agent --",
+    "pair": "node tools/android/pair.mts"
   }
 }
