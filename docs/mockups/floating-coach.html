@@ -1,0 +1,790 @@
+<meta charset="utf-8">
+<title>웰니스 코치 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: phone left, decisions right. Visual language: a common Korean retail-app layout (photo hero, pill shortcuts, service cards, rails, rankings)
+   (photo hero, pill shortcuts, two service cards, two-line section titles with carousels, white tab bar with a
+   rounded-square centre action, barcode-style sheet). Accent = diet-coach blue instead of their green. */
+:root{
+  --ground:#f3f6fa;--card:#fff;--fg:#111;--title:#222;--val:#55595e;--desc:#8b9099;--line:#eceef2;--outline:#dfe2e7;
+  --pri:#2563eb;--pri-soft:#e8effd;--pri-ink:#1d4ed8;--on-pri:#fff;
+  --dark:#2b2f36;--on-dark:#fff;--coach-a:#eef4ff;--coach-b:#d6e4ff;--coach-ink:#1e3a8a;--sale:#e5293e;--strip:#1d4ed8;
+  --t-mint:#e3f6ef;--t-mint-ink:#0f8a62;--t-amber:#fdf1dc;--t-amber-ink:#b26a00;--t-rose:#fde8ec;--t-rose-ink:#c2334d;
+  --thumb:#f1f3f6;--chat-bg:#eef2f7;--soft-blue:#dce8fb;--soft:0 4px 14px rgba(30,60,120,.08);--stage:#1b1d22;--frame:#000;--scrim:rgba(0,0,0,.45);
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0b0d12;--card:#161a21;--fg:#f1f3f6;--title:#f1f3f6;--val:#b7bcc6;--desc:#8a909c;--line:#232833;--outline:#2d3340;
+  --pri:#3b74ec;--pri-soft:#18233d;--pri-ink:#93b4f5;--dark:#0f1217;--coach-a:#1a2742;--coach-b:#22355e;--coach-ink:#cfe0ff;--strip:#1e3a8a;
+  --t-mint:#10291f;--t-mint-ink:#5fd3a6;--t-amber:#2e2410;--t-amber-ink:#f0b24a;--t-rose:#33161c;--t-rose-ink:#f28b9c;
+  --thumb:#1e232c;--chat-bg:#0e131c;--soft-blue:#1a2742;--soft:0 4px 14px rgba(0,0,0,.35);--scrim:rgba(0,0,0,.65);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0b0d12;--card:#161a21;--fg:#f1f3f6;--title:#f1f3f6;--val:#b7bcc6;--desc:#8a909c;--line:#232833;--outline:#2d3340;
+  --pri:#3b74ec;--pri-soft:#18233d;--pri-ink:#93b4f5;--dark:#0f1217;--coach-a:#1a2742;--coach-b:#22355e;--coach-ink:#cfe0ff;--strip:#1e3a8a;
+  --t-mint:#10291f;--t-mint-ink:#5fd3a6;--t-amber:#2e2410;--t-amber-ink:#f0b24a;--t-rose:#33161c;--t-rose-ink:#f28b9c;
+  --thumb:#1e232c;--chat-bg:#0e131c;--soft-blue:#1a2742;--soft:0 4px 14px rgba(0,0,0,.35);--scrim:rgba(0,0,0,.65);color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--fg);font:14px/1.45 var(--font);letter-spacing:-.02em;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit;letter-spacing:inherit;cursor:pointer;border:none;background:none;padding:0}
+button:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.layout{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap;max-width:1080px;margin:0 auto}
+/* html.app (?app=1, inside the Android shell): full-screen phone, no design notes.
+   html.live: screens wired by app.js, to the server in the app or to demo.js data in this mockup */
+html.app body{margin:0;padding:0;background:var(--card);overflow:hidden}
+html.live a.pill-btn{display:grid;place-items:center;text-decoration:none}
+html.app .layout{display:block;max-width:none}
+html.app .states,html.app .notes{display:none}
+html.live:not(.voice) .c-input .mic,html.live:not(.voice) #ttsBtn{display:none}
+html.live .sample-tag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--ground);color:var(--desc);font-size:10px;font-weight:600;vertical-align:2px}
+html.live .toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(17,24,39,.9);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;z-index:50;max-width:80%;text-align:center}
+html.live .go-btn small{font-size:11px;font-weight:600}
+html.live .go-btn[aria-pressed="true"]{background:var(--sale)}
+/* strength logging (app.js) */
+html.live .lw h3{justify-content:flex-start;gap:8px}
+html.live .lw h3 .exi{width:28px;height:28px}
+html.live .lset{display:grid;grid-template-columns:32px 1fr 1fr 44px;gap:8px;align-items:center;padding:4px 0}
+html.live .lset.head{font-size:12px;color:var(--desc);text-align:center;padding-bottom:2px}
+html.live .lset>span:first-child{text-align:center;font-weight:700;color:var(--desc)}
+html.live .lset>span:nth-child(2){text-align:center;color:var(--desc);font-size:13px}
+html.live .lset input{width:100%;min-width:0;height:44px;border:0;border-radius:12px;background:var(--ground);color:var(--fg);font:600 16px var(--font);text-align:center;font-variant-numeric:tabular-nums}
+html.live .lset.done input{color:var(--desc)}
+html.live .lset input::-webkit-inner-spin-button,html.live .lset input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+html.live .lset input{-moz-appearance:textfield;appearance:textfield}
+html.live.logging #fab,html.live.logging #nudge{display:none}
+html.live .p-note.flat{padding:0;margin:0}
+html.live .musc div{grid-template-columns:72px 1fr 40px} /* live muscle names are longer: 허벅지 안쪽 */
+html.live .chk{width:44px;height:44px;border-radius:50%;background:var(--ground);color:var(--desc);font-weight:800;font-size:18px}
+html.live .chk[aria-pressed="true"]{background:var(--pri);color:#fff}
+html.live .add-set{width:100%;height:40px;margin-top:6px;border-radius:12px;background:var(--ground);color:var(--pri);font-weight:700}
+html.live .lw-foot{padding:8px 18px 24px}
+html.live .lw-cancel{display:block;margin:6px auto 0;padding:8px 12px;color:var(--desc);font-size:13px}
+html.app .phone{width:100%;height:100dvh;max-height:none;min-height:0;border:0;border-radius:0}
+html.live input.field{border:0;font:inherit;color:var(--fg);outline-offset:2px}
+.states{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.states button{padding:7px 14px;border-radius:22px;background:#2b2f36;color:#c9ced6;font-weight:600}
+.states button[aria-pressed="true"]{background:var(--pri);color:#fff}
+
+/* phone */
+.phone{width:min(375px,100%);height:800px;max-height:calc(100vh - 40px);min-height:660px;border-radius:40px;border:8px solid var(--frame);background:var(--card);position:relative;overflow:hidden;flex:0 0 auto}
+.scroll{position:absolute;inset:0 0 64px;overflow-y:auto;scrollbar-width:none;background:var(--card)}
+.scroll::-webkit-scrollbar{display:none}
+
+/* hero */
+.hero{position:relative;height:300px;color:#fff;overflow:hidden;background:#0f1f33}
+.hero .bg{position:absolute;inset:0;width:100%;height:100%;z-index:0;object-fit:cover;object-position:70% 50%}
+.thumb img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block}
+.promo .ph{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:104px;height:104px;border-radius:12px;overflow:hidden}
+.promo .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.strip .ph{margin-left:auto;width:48px;height:48px;border-radius:10px;overflow:hidden;flex:0 0 auto}
+.strip .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.hero::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,0) 60%),linear-gradient(180deg,rgba(0,0,0,.3),rgba(0,0,0,0) 40%)}
+.hero>.h-top,.hero>.notice,.hero>h1,.hero>p{position:relative;z-index:1} /* .quick and .pg stay absolutely placed */
+.hero .quick,.hero .pg{z-index:1}
+.ico{width:16px;height:16px;flex:0 0 auto;vertical-align:-3px}
+.thumb svg{width:84%;height:84%}
+.lrow .thumb svg,.rank .thumb svg{width:46%;height:46%}
+.tint-b{background:var(--pri-soft)!important;color:var(--pri-ink)}.tint-m{background:var(--t-mint)!important;color:var(--t-mint-ink)}.tint-a{background:var(--t-amber)!important;color:var(--t-amber-ink)}.tint-r{background:var(--t-rose)!important;color:var(--t-rose-ink)}
+.sec-h h2 .ico{width:20px;height:20px;color:#f97316;vertical-align:-3px}
+.art svg{display:block}
+.pi{width:18px;height:18px;object-fit:contain}
+.svc .item i img{width:24px;height:24px;object-fit:contain}
+.hi{width:28px;height:28px;object-fit:contain;vertical-align:-6px}
+.thumb img.icon{width:64%;height:64%;object-fit:contain;border-radius:0}
+.rbtn img{width:30px;height:30px;object-fit:contain}
+.pic{background:var(--soft-blue)!important}.pic img{width:84%;height:84%;object-fit:contain}
+.c-av.pic::after{border-right-color:var(--soft-blue);border-top-color:var(--soft-blue)}
+
+.h-top{display:flex;align-items:center;gap:6px;padding:12px 14px 0 18px;font-size:12px}
+.h-top .loc{flex:1;font-weight:600}
+.h-top .ib{width:30px;height:30px;display:grid;place-items:center;color:#fff}
+.notice{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0 18px;background:var(--pri);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px}
+.hero h1{margin:26px 18px 6px;font-size:24px;line-height:1.3;font-weight:700;text-wrap:balance}
+.hero p{margin:0 18px;font-size:12px;opacity:.9}
+.hero .pg{position:absolute;right:16px;bottom:58px;background:rgba(0,0,0,.4);font-size:11px;padding:2px 8px;border-radius:10px}
+.quick{position:absolute;left:0;right:0;bottom:12px;display:flex;gap:6px;padding:0 14px;overflow-x:auto;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick button{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:var(--card);color:var(--title);border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+
+/* service cards */
+.svc{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 14px 4px;background:var(--ground)}
+.svc .w{background:var(--card);border-radius:14px;padding:14px;grid-row:span 2}
+.svc .k{font-size:11px;color:var(--desc)}
+.svc .w b,.svc .d b{display:block;font-size:15px;margin-bottom:10px}
+[data-go]{cursor:pointer}
+.svc .item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;font-weight:600;white-space:nowrap}
+.svc .d .go{position:absolute;left:14px;bottom:14px;font-size:12px;font-weight:700;color:var(--pri)}
+.svc .item i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal;font-size:16px}
+.svc .d{background:linear-gradient(160deg,var(--coach-a),var(--coach-b));color:var(--coach-ink);border-radius:14px;padding:14px;min-height:118px;position:relative}
+.svc .d .k{color:var(--val)}
+.svc .d .art{position:absolute;right:12px;bottom:10px;font-size:34px}
+.svc .s{background:var(--t-mint);border-radius:14px;padding:12px 14px;position:relative}
+.svc .s b{font-size:14px;color:var(--t-mint-ink)}
+.svc .s span{display:block;font-size:11px;color:var(--val)}
+.svc .s .art{position:absolute;right:10px;top:8px;font-size:24px}
+
+/* sections */
+.sec{padding:26px 0 6px}
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 12px}
+.sec-h h2{margin:0;font-size:18px;line-height:1.35;font-weight:700;color:var(--title)}
+.sec-h a{font-size:12px;color:var(--desc);text-decoration:none}
+.rail{display:flex;gap:10px;overflow-x:auto;padding:0 18px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.prod{flex:0 0 104px}
+.thumb{position:relative;aspect-ratio:1;border-radius:10px;background:var(--thumb);display:grid;place-items:center;font-size:44px}
+.badge{position:absolute;left:5px;top:5px;background:#222;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px}
+.badge.b{background:var(--pri)}
+.tags{display:flex;gap:4px;margin-top:7px;font-size:10px;font-weight:600}
+.tags .t1{color:var(--t-mint-ink)}.tags .t2{color:var(--desc)}
+.pname{font-size:12px;color:var(--title);margin-top:2px;line-height:1.35}
+.pval{font-size:13px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.pval s{display:block;font-size:11px;font-weight:400;color:var(--desc)}
+.pval em{font-style:normal;color:var(--sale);margin-right:3px}
+.pmeta{font-size:11px;color:var(--desc);margin-top:2px}
+
+.promo{margin:4px 18px 0;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;padding:18px 130px 18px 18px;position:relative;min-height:124px;overflow:hidden}
+.promo b{display:block;font-size:17px;line-height:1.35}
+.promo span{font-size:11px;opacity:.85}
+.promo .art{position:absolute;right:10px;bottom:-6px;font-size:64px}
+.lrow{display:flex;gap:12px;align-items:center;padding:10px 18px}
+.lrow .thumb{flex:0 0 64px;font-size:30px}
+.dots{display:flex;gap:4px;justify-content:center;padding:6px 0}.dots i{width:5px;height:5px;border-radius:50%;background:var(--outline)}.dots i:first-child{background:var(--fg)}
+
+.strip{margin-top:22px;background:var(--strip);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+.strip b{font-size:15px;display:block}.strip span{font-size:11px;opacity:.85}
+.strip .art{margin-left:auto;font-size:32px}
+
+.rank{display:grid;grid-template-columns:1fr;gap:4px;padding:0 18px}
+.rank .r{display:flex;gap:12px;align-items:center;padding:6px 0}
+.rank .no{width:14px;font-weight:700;font-size:15px;text-align:center}
+.rank .thumb{flex:0 0 58px;font-size:28px}
+.foot-space{height:40px}
+
+/* record palette (centre +) and feature pages: diet = diet-coach, supplements, strength = egg-kim-coach, walk = Pace-Coach */
+.pal{position:absolute;left:0;right:0;bottom:0;background:var(--chat-bg);border-radius:24px 24px 0 0;z-index:8;padding:0 16px 14px}
+.pal h3{margin:14px 4px 12px;font-size:18px}
+.pal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pal-grid button{background:var(--card);border-radius:18px;padding:14px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:var(--soft)}
+.pal-grid img,.pal-grid .sv{width:46px;height:46px;object-fit:contain}
+.pal-grid .sv{display:grid;place-items:center;border-radius:14px;background:var(--soft-blue);color:var(--pri)}
+.pal-grid .sv svg{width:26px;height:26px}
+.pal-grid small{font-size:11px;font-weight:500;color:var(--desc);margin-top:-4px}
+.pal-close{display:block;width:100%;height:48px;margin-top:12px;border-radius:24px;background:var(--card);box-shadow:var(--soft);font-weight:700;color:var(--val)}
+.page{position:absolute;inset:0 0 64px;background:var(--ground);overflow-y:auto;z-index:4;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+.p-top{position:sticky;top:0;z-index:2;height:52px;background:var(--card);display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid var(--line)}
+.p-top h2{flex:1;margin:0;font-size:17px;font-weight:700}
+.p-top .ib{width:38px;height:38px;display:grid;place-items:center;color:var(--title)}
+.p-top .ib svg{width:22px;height:22px}
+.p-sec{background:var(--card);padding:18px;margin-bottom:8px}
+.p-sec h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.p-sec h3 a{font-size:12px;font-weight:500;color:var(--desc);text-decoration:none}
+.p-note{font-size:11px;color:var(--desc);padding:4px 18px 18px;margin:0}
+.dstrip{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;color:var(--desc);background:var(--card);padding:8px 10px 12px}
+.dstrip b{display:grid;place-items:center;width:32px;height:32px;margin:3px auto 0;border-radius:50%;font-size:13px;color:var(--val)}
+.dstrip .on b{background:var(--pri);color:#fff}
+.dstrip .dot b{box-shadow:inset 0 0 0 2px var(--pri-soft)}
+.kcal{display:flex;gap:16px;align-items:center}
+.ring{width:108px;height:108px;flex:0 0 auto;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring div{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-size:11px;color:var(--desc)}
+.ring div b{font-size:20px;color:var(--fg);font-variant-numeric:tabular-nums}
+.macros{flex:1;min-width:0;display:grid;gap:9px}
+.macro-r{font-size:12px;color:var(--val)}
+.macro-r div{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.macro-r .bar{margin-top:4px;height:6px}
+.meal{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.meal:last-child{border-bottom:none}
+.meal .ph{width:56px;height:56px;border-radius:12px;background:var(--thumb);overflow:hidden;flex:0 0 auto;display:grid;place-items:center;color:var(--desc);font-size:22px}
+.meal .ph img{width:100%;height:100%;object-fit:cover}
+.meal .tx{flex:1;min-width:0}
+.meal .tx b{font-size:14px;display:block}
+.meal .tx span{font-size:12px;color:var(--desc);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meal .k{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.meal.empty .ph{border:2px dashed var(--outline);background:none}
+.meal.empty .k{color:var(--pri)}
+.btn-pill{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:50px;border-radius:25px;background:var(--pri);color:#fff;font-weight:700;font-size:15px;box-shadow:0 6px 16px rgba(37,99,235,.28)}
+.btn-pill.soft{background:var(--pri-soft);color:var(--pri-ink);box-shadow:none}
+.btn-pill img{width:22px;height:22px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini>div{background:var(--ground);border-radius:14px;padding:12px}
+.mini .t{font-size:12px;color:var(--desc)}
+.mini .n{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.mini .n small{font-size:11px;font-weight:500;color:var(--desc);margin-left:2px}
+.prog{display:flex;justify-content:space-between;align-items:flex-end;font-variant-numeric:tabular-nums}
+.prog b{font-size:26px}.prog span{font-size:12px;color:var(--desc)}
+.slot{font-size:12px;font-weight:700;color:var(--pri-ink);margin:14px 0 6px}
+.chk{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--ground);margin-bottom:6px}
+.chk .tx{flex:1;min-width:0}.chk b{font-size:14px;display:block}.chk span{font-size:12px;color:var(--desc)}
+.chk i{width:30px;height:30px;border-radius:50%;border:2px dashed var(--outline);flex:0 0 auto;display:grid;place-items:center;font-style:normal;color:#fff;font-weight:800}
+.chk.done i{background:var(--pri);border:none}
+.chk.done b{color:var(--desc);text-decoration:line-through}
+.ana{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.ana:last-child{border-bottom:none}
+.ana .nm{flex:1;min-width:0;font-weight:600}.ana .v{color:var(--val);font-variant-numeric:tabular-nums}
+.tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.tg.ok{background:var(--t-mint);color:var(--t-mint-ink)}.tg.warn{background:var(--t-amber);color:var(--t-amber-ink)}.tg.bad{background:var(--t-rose);color:var(--t-rose-ink)}.tg.b{background:var(--pri-soft);color:var(--pri-ink)}
+.banner{position:relative;height:150px;background:#dfe6f1;overflow:hidden}
+.banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center}
+.banner .tx{position:relative;padding:22px 18px;max-width:62%}
+.banner .tx span{font-size:12px;font-weight:700;color:var(--pri-ink)}
+.banner .tx b{display:block;font-size:20px;line-height:1.3;margin-top:4px;color:#111}
+.banner .tx em{display:block;font-style:normal;font-size:12px;color:#55595e;margin-top:4px}
+.ex{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ex:last-child{border-bottom:none}
+.ex .no{width:26px;height:26px;border-radius:50%;background:var(--pri-soft);color:var(--pri-ink);font-size:12px;font-weight:800;display:grid;place-items:center;flex:0 0 auto}
+.ex .tx{flex:1;min-width:0}.ex b{font-size:14px;display:block}.ex span{font-size:12px;color:var(--desc);font-variant-numeric:tabular-nums}
+.musc{display:grid;gap:9px}
+.musc div{display:grid;grid-template-columns:44px 1fr 40px;gap:8px;align-items:center;font-size:12px;color:var(--val);font-variant-numeric:tabular-nums}
+.musc .bar{margin:0;height:7px}
+.musc .low i{background:var(--t-amber-ink)}
+.map{position:relative;height:200px;background:#e7efe3;overflow:hidden}
+.map img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.map .chip{position:absolute;left:12px;bottom:12px;background:var(--card);color:var(--fg);border-radius:16px;padding:6px 12px;font-size:12px;font-weight:700;box-shadow:var(--soft)}
+.go-row{display:flex;align-items:center;gap:14px}
+.go-btn{width:84px;height:84px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;font-size:15px;line-height:1.2;box-shadow:0 0 0 8px var(--pri-soft),0 8px 18px rgba(37,99,235,.3);flex:0 0 auto}
+.go-row .tx{flex:1;min-width:0;display:grid;gap:8px}
+.tgl{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--val)}
+.stats4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats4>div{background:var(--ground);border-radius:14px;padding:12px}
+.stats4 span{font-size:12px;color:var(--desc)}.stats4 b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.course{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.course:last-child{border-bottom:none}
+.course img{width:44px;height:44px;object-fit:contain;flex:0 0 auto}
+.cats{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:72px;gap:10px 8px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px}
+.cats::-webkit-scrollbar{display:none}
+.cats button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--val)}
+.cats img{width:64px;height:64px;border-radius:14px;object-fit:cover;background:var(--thumb)}
+.banner.dark{background:#1b1d22}
+.banner.dark::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.35) 50%,rgba(0,0,0,0) 75%)}
+.banner.dark .tx{z-index:1}
+.banner.dark .tx span{color:#93c5fd}.banner.dark .tx b{color:#fff}.banner.dark .tx em{color:#d1d5db}
+.course img.cph{width:52px;height:52px;border-radius:12px;object-fit:cover}
+.chk img,.exi{width:38px;height:38px;object-fit:contain;flex:0 0 auto}
+.course .tx{flex:1;min-width:0}.course b{font-size:14px;display:block}.course span{font-size:12px;color:var(--desc)}
+
+/* tab bar */
+nav.bn{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--card);border-top:1px solid var(--line);display:flex;align-items:center;z-index:5}
+nav.bn button{flex:1;font-size:10px;color:var(--desc);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.bn .on{color:var(--fg);font-weight:700}
+nav.bn .mid{flex:0 0 76px}
+nav.bn .mid span{width:56px;height:44px;border-radius:16px;background:var(--pri);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(37,99,235,.35)}
+
+/* floating coach */
+.coach-fab{position:absolute;right:16px;bottom:80px;z-index:6;width:52px;height:52px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;box-shadow:0 6px 16px rgba(37,99,235,.35)}
+.coach-fab .dot{position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:var(--sale);border:2px solid var(--card)}
+.nudge{position:absolute;right:76px;bottom:92px;z-index:6;background:var(--card);color:var(--fg);border:1px solid var(--line);font-size:12px;font-weight:600;padding:7px 12px;border-radius:14px 14px 4px 14px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+
+/* coach sheet: soft chatbot style from the user's reference (airy blue-grey ground, white cards with soft shadows,
+   tailed bubbles, round blue avatars, pill segmented tabs, typing dots, row cards with round icon buttons, pill input) */
+.scrim{position:absolute;inset:0;background:var(--scrim);z-index:7}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:64px;background:var(--chat-bg);border-radius:24px 24px 0 0;z-index:8;display:flex;flex-direction:column;overflow:hidden}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--outline);margin:8px auto 0;flex:0 0 auto}
+.c-top{display:flex;align-items:center;gap:10px;padding:10px 16px 12px}
+.c-av{width:44px;height:44px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;position:relative;flex:0 0 auto}
+.c-av::after{content:"";position:absolute;left:-2px;bottom:2px;border:7px solid transparent;border-right-color:var(--pri);border-top-color:var(--pri);transform:rotate(-30deg)}
+.c-av svg{width:24px;height:24px}
+.c-name{flex:1;min-width:0}
+.c-name b{display:block;font-size:16px}
+.c-name span{display:block;font-size:12px;color:var(--desc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-icon{width:38px;height:38px;border-radius:50%;background:var(--card);color:var(--pri);display:grid;place-items:center;box-shadow:var(--soft);flex:0 0 auto}
+.c-icon svg{width:18px;height:18px}
+.c-icon[aria-pressed="true"]{background:var(--pri);color:#fff}
+.seg{display:flex;gap:4px;margin:0 16px 4px;padding:4px;background:var(--card);border-radius:22px;box-shadow:var(--soft)}
+.seg button{flex:1;height:34px;border-radius:18px;font-size:13px;font-weight:600;color:var(--desc)}
+.seg button[aria-selected="true"]{background:var(--pri);color:#fff}
+.s-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.day{align-self:center;font-size:11px;color:var(--desc);background:var(--card);padding:3px 10px;border-radius:10px}
+.mrow{display:flex;gap:8px;align-items:flex-end}
+.mrow.me{justify-content:flex-end}
+.av-s{width:30px;height:30px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+.av-s svg{width:16px;height:16px}
+.bub{position:relative;padding:11px 14px;border-radius:18px;max-width:80%;font-size:14px;line-height:1.55}
+.bub.bot{background:var(--card);box-shadow:var(--soft);border-bottom-left-radius:6px}
+.bub.me{background:var(--pri);color:#fff;border-bottom-right-radius:6px;box-shadow:0 6px 16px rgba(37,99,235,.25)}
+.bub.bot::before,.bub.me::before{content:"";position:absolute;bottom:0;width:10px;height:10px}
+.bub.bot::before{left:-5px;background:var(--card);clip-path:polygon(100% 0,100% 100%,0 100%)}
+.bub.me::before{right:-5px;background:var(--pri);clip-path:polygon(0 0,100% 100%,0 100%)}
+.typing{display:flex;gap:5px;padding:12px 16px;background:var(--soft-blue);border-radius:18px;border-bottom-left-radius:6px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--pri);opacity:.35;animation:dot 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,100%{opacity:.35}50%{opacity:1}}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:8px 0}
+.rcard .k{font-size:12px;font-weight:600;color:var(--title)}
+.rcard .dl{border-top:2px dotted var(--outline);margin:8px 0}
+.rcard .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;font-size:11px;color:var(--desc);font-variant-numeric:tabular-nums}
+.rcard .nums b{display:block;font-size:17px;color:var(--pri-ink)}
+.tts{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:4px 10px;background:var(--soft-blue);border-radius:12px;font-size:11px;font-weight:600;color:var(--pri-ink)}
+.checkin{border-top:2px dotted var(--outline);margin-top:10px;padding-top:10px;font-size:13px;color:var(--val)}
+.qr{display:flex;align-items:center;gap:8px}
+.qr .av-s{width:34px;height:34px;background:var(--soft-blue);color:var(--pri)}
+.qr button{flex:1;display:flex;align-items:center;justify-content:space-between;background:var(--card);box-shadow:var(--soft);border-radius:22px;padding:10px 14px;font-size:13px;font-weight:600;text-align:left}
+.qr button svg{width:16px;height:16px;color:var(--pri);flex:0 0 auto}
+.rc{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:20px;padding:14px 14px 14px 18px;box-shadow:var(--soft)}
+.rc .tx{flex:1;min-width:0}
+.rc b{display:block;font-size:14px}
+.rc span{font-size:12px;color:var(--desc)}
+.rc .n{font-size:17px;font-weight:700;color:var(--pri-ink);font-variant-numeric:tabular-nums}
+.rbtn{width:42px;height:42px;border-radius:50%;background:var(--ground);color:var(--pri);display:grid;place-items:center;flex:0 0 auto;border:1px solid var(--line)}
+.rbtn svg{width:19px;height:19px}
+.rbtn.red{color:var(--sale)}
+.alert{background:var(--card);border-radius:20px;border:2px solid var(--sale);padding:16px 18px;box-shadow:var(--soft)}
+.alert h4{margin:0 0 6px;font-size:16px;color:var(--sale)}
+.alert p{margin:0;color:var(--val)}
+.hint{text-align:center;font-size:12px;color:var(--desc);margin:0}
+.c-input{display:flex;gap:8px;align-items:center;padding:8px 16px 4px}
+.c-input .mic{width:46px;height:46px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 6px 16px rgba(37,99,235,.3)}
+.c-input .mic.live{background:var(--sale);box-shadow:0 6px 16px rgba(229,41,62,.3)}
+.c-input .field{flex:1;min-width:0;height:46px;border-radius:23px;background:var(--card);box-shadow:var(--soft);padding:0 18px;display:flex;align-items:center;color:var(--desc);white-space:nowrap;overflow:hidden}
+.c-input .mic svg,.c-input .send svg{width:22px;height:22px}
+.c-input .send{width:46px;height:46px;border-radius:50%;background:var(--card);color:var(--pri);display:grid;place-items:center;flex:0 0 auto;box-shadow:var(--soft)}
+.pill-btn{display:block;margin:8px auto 4px;padding:0 28px;height:48px;border-radius:24px;background:var(--sale);color:#fff;font-weight:700;font-size:15px;box-shadow:0 6px 16px rgba(229,41,62,.3)}
+.pill-btn.blue{background:var(--pri);box-shadow:0 6px 16px rgba(37,99,235,.3)}
+.home-ind{width:120px;height:5px;border-radius:3px;background:var(--outline);margin:8px auto 10px;flex:0 0 auto}
+.listen{margin:auto;display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--desc);text-align:center}
+.listen .big{width:88px;height:88px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 12px var(--soft-blue),0 0 0 24px color-mix(in srgb,var(--soft-blue) 50%,transparent)}
+.listen .big svg{width:36px;height:36px}
+.wave{display:flex;gap:4px;align-items:center;height:36px}
+.wave i{width:5px;border-radius:3px;background:var(--pri);animation:w 1s ease-in-out infinite}
+.wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}.wave i:nth-child(5){animation-delay:.6s}
+@keyframes w{0%,100%{height:8px}50%{height:30px}}
+@media (prefers-reduced-motion:reduce){.wave i,.typing i{animation:none;height:20px;opacity:1}}
+.stt{background:var(--card);box-shadow:var(--soft);border-radius:22px;padding:10px 18px;font-size:15px;font-weight:700;color:var(--fg)}
+
+/* notes */
+.notes{flex:1 1 380px;min-width:0;max-width:540px;color:#e6e8ec}
+.notes h1{font-size:22px;margin:0 0 4px;text-wrap:balance;color:#fff}
+.lede{color:#aeb4be;margin:0 0 16px;max-width:60ch;font-size:15px}
+.notes section{background:#24272e;border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.notes h2{font-size:15px;margin:0 0 8px;color:#fff}
+.notes ul{margin:0;padding-left:18px;color:#c3c8d0;display:grid;gap:4px}
+.notes b{color:#fff}
+</style>
+
+<!-- Icon + illustration sprite: line icons (24 grid, stroke currentColor) and flat food/fitness illustrations (120 grid). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></g></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></g></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></g></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/><path d="M9.5 14.5h5M12 12v5" stroke-linecap="round"/></g></symbol>
+    <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 11c0-3 2-5 4-5M14 11c0-2 1.5-4 4-4.5"/></g></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7v10M17 7v10M4 9.5v5M20 9.5v5M7 12h10"/></g></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></g></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="1.8"/><path d="m9 21 2.5-6 2.5 2v4M11.5 15l1-6-3 1.5L8 13M12.5 9l2 3 3 1"/></g></symbol>
+    <symbol id="i-water" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 3h10l-1.5 17a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z"/><path d="M7.6 9h8.8" stroke-linecap="round"/></g></symbol>
+    <symbol id="i-squat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 4v4M18 4v4"/><circle cx="12" cy="9" r="1.6"/><path d="M12 11v4l-3 2v3M12 15l3 2v3"/></g></symbol>
+    <symbol id="i-stretch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.8"/><path d="M4 9l8 2 8-2M12 11v4l-4 6M12 15l4 6"/></g></symbol>
+    <symbol id="i-plate" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="12" r="6"/><circle cx="13" cy="12" r="2.5"/><path d="M3.5 4v6M5 4v16M3.5 10H5"/></g></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 3.5 5 5.5 5 10.5A5 5 0 0 1 7 12.5c0-2 1-3.4 2-4.3.2 1.8 1 2.8 2 3.3C10.5 8 11 5 12 2z"/></symbol>
+    <symbol id="i-coach" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11 6.6L4 19.5l1.3-4.3A7.5 7.5 0 1 1 20 11.5z"/><path d="M12.5 7.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="currentColor"/></g></symbol>
+
+    <symbol id="i-speaker" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></g></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.3-3.6 4-5.5 7-5.5s5.7 1.9 7 5.5"/></g></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/></g></symbol>
+    <symbol id="i-siren" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18v-6a6 6 0 0 1 12 0v6"/><path d="M4 18h16v3H4zM12 2v2M3.5 6l1.5 1.5M20.5 6 19 7.5"/></g></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></g></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></g></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 20 4l-5 16-3-7z"/><path d="m12 13 8-9"/></g></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></g></symbol>
+    <symbol id="i-pill" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="8.5" width="17" height="7" rx="3.5" transform="rotate(-40 12 12)"/><path d="m9.6 9.2 5 5.6"/></g></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 10a4.5 4.5 0 0 1 7 0M12 10l1.4-1.6"/></g></symbol>
+    <symbol id="ill-salad" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="98" rx="42" ry="6" fill="#000" opacity=".08"/>
+      <path d="M14 58h92a46 40 0 0 1-92 0z" fill="#fff"/><path d="M14 58h92a46 40 0 0 1-92 0z" fill="none" stroke="#2563eb" stroke-width="3"/>
+      <ellipse cx="60" cy="58" rx="46" ry="12" fill="#f7f3ea"/>
+      <path d="M22 56c4-12 14-16 22-12 2-8 14-10 18-2 6-8 20-6 22 4 8-2 16 4 14 10z" fill="#5fae4e"/>
+      <path d="M30 52c6-6 12-6 16-2M70 46c6-2 12 0 14 6" stroke="#3f8a37" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="44" y="44" width="22" height="9" rx="4" fill="#d9a066" transform="rotate(-12 55 48)"/><rect x="48" y="52" width="22" height="9" rx="4" fill="#c98b4f" transform="rotate(-6 59 56)"/>
+      <path d="M46 47l14-3M50 55l14-2" stroke="#a86a33" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="80" cy="52" r="6" fill="#e5483a"/><circle cx="88" cy="58" r="5" fill="#ef6a4c"/><circle cx="78" cy="53" r="1.6" fill="#fff" opacity=".6"/>
+      <ellipse cx="34" cy="60" rx="10" ry="5" fill="#c9a874"/><g fill="#7a5a33"><circle cx="30" cy="59" r="1"/><circle cx="35" cy="61" r="1"/><circle cx="38" cy="58" r="1"/></g>
+      <g fill="#8cc63f"><ellipse cx="66" cy="62" rx="3" ry="2.2"/><ellipse cx="72" cy="63" rx="3" ry="2.2"/></g>
+    </symbol>
+    <symbol id="ill-stew" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="100" rx="40" ry="6" fill="#000" opacity=".08"/>
+      <path d="M20 54h80l-6 36a10 10 0 0 1-10 8H36a10 10 0 0 1-10-8z" fill="#2c2a28"/>
+      <rect x="10" y="56" width="12" height="7" rx="3.5" fill="#2c2a28"/><rect x="98" y="56" width="12" height="7" rx="3.5" fill="#2c2a28"/>
+      <ellipse cx="60" cy="54" rx="40" ry="11" fill="#3a3734"/><ellipse cx="60" cy="54" rx="35" ry="8.5" fill="#c87a2c"/>
+      <g fill="#fbf6ec"><rect x="38" y="48" width="11" height="9" rx="2"/><rect x="58" y="50" width="11" height="9" rx="2"/><rect x="72" y="47" width="10" height="8" rx="2"/></g>
+      <g fill="#7cb342"><path d="M50 53a5 5 0 0 1 10 0z"/><path d="M80 56a5 5 0 0 1 10 0z"/></g>
+      <circle cx="44" cy="58" r="2.4" fill="#e04b2b"/><circle cx="68" cy="58" r="2" fill="#e04b2b"/>
+      <g fill="none" stroke="#9aa3ad" stroke-width="2.5" stroke-linecap="round" opacity=".7"><path d="M46 38c-4-4 4-6 0-11"/><path d="M60 36c-4-4 4-6 0-11"/><path d="M74 38c-4-4 4-6 0-11"/></g>
+    </symbol>
+    <symbol id="ill-fish" viewBox="0 0 120 120">
+      <rect x="8" y="34" width="104" height="66" rx="12" fill="#e4d6c0"/><rect x="12" y="38" width="96" height="58" rx="10" fill="#efe4d2"/>
+      <path d="M22 62c10-14 38-16 54-6l12-9-3 15 3 14-12-8c-16 10-44 8-54-6z" fill="#8a8f96"/>
+      <path d="M22 62c10-6 38-8 54-2l-1 6c-16 4-42 2-53-4z" fill="#c9cdd2"/>
+      <g stroke="#5b6168" stroke-width="2" stroke-linecap="round"><path d="M38 52l4 8M48 50l4 8M58 50l4 8"/></g>
+      <circle cx="30" cy="59" r="2" fill="#2b2b2b"/>
+      <ellipse cx="34" cy="85" rx="15" ry="7" fill="#fff"/><ellipse cx="34" cy="83" rx="12" ry="4" fill="#f5f5f2"/>
+      <ellipse cx="62" cy="86" rx="10" ry="6" fill="#fff"/><path d="M55 85c3-4 10-4 14 0-3 3-10 3-14 0z" fill="#d84a2a"/>
+      <ellipse cx="86" cy="86" rx="10" ry="6" fill="#fff"/><path d="M79 86c4-3 10-3 14 0" stroke="#4e8f3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ill-onigiri" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="100" rx="44" ry="6" fill="#000" opacity=".08"/>
+      <path d="M22 96l20-46a6 6 0 0 1 11 0l20 46z" fill="#fff" stroke="#e7e7e2" stroke-width="2"/>
+      <path d="M30 96l5-12h26l5 12z" fill="#1f2a24"/>
+      <path d="M52 96l18-40a6 6 0 0 1 11 0l20 40z" fill="#fff" stroke="#e7e7e2" stroke-width="2"/>
+      <path d="M62 96l5-11h26l5 11z" fill="#1f2a24"/>
+      <ellipse cx="76" cy="72" rx="8" ry="6" fill="#e9c58b"/><g fill="#fff" opacity=".7"><circle cx="73" cy="71" r="1.3"/><circle cx="78" cy="73" r="1.3"/></g>
+      <g fill="#f0efe9"><circle cx="40" cy="70" r="1.3"/><circle cx="46" cy="78" r="1.3"/><circle cx="84" cy="62" r="1.3"/></g>
+    </symbol>
+    <symbol id="ill-shoe" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="92" rx="48" ry="6" fill="#000" opacity=".1"/>
+      <path d="M14 82c0-10 4-22 10-30 6 2 14 2 20-2l8 10c10 6 24 8 40 10 10 2 16 6 16 12v6H14z" fill="#60a5fa"/>
+      <path d="M14 82h94v6a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4z" fill="#fff"/><path d="M14 86h94" stroke="#cfd8e3" stroke-width="2"/>
+      <path d="M44 50l8 10M48 56l6-4M52 62l6-4M56 66l6-3" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M24 52c6 2 14 2 20-2" stroke="#1d4ed8" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ill-coach" viewBox="0 0 120 120">
+      <circle cx="62" cy="58" r="40" fill="#2563eb" opacity=".25"/>
+      <path d="M92 56a32 32 0 0 1-46 28.8L26 90l5.6-17A32 32 0 1 1 92 56z" fill="#3b82f6"/>
+      <g fill="#fff"><circle cx="46" cy="57" r="4.5"/><circle cx="60" cy="57" r="4.5"/><circle cx="74" cy="57" r="4.5"/></g>
+      <path d="M96 22l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fde68a"/>
+    </symbol>
+    <symbol id="ill-path" viewBox="0 0 120 120">
+      <path d="M40 112c10-20 50-24 40-46-6-14-30-16-24-34" stroke="#93c5fd" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <circle cx="86" cy="34" r="16" fill="#4ade80"/><rect x="84" y="46" width="4" height="16" rx="2" fill="#7c5a3a"/>
+      <circle cx="30" cy="62" r="12" fill="#22c55e"/><rect x="28" y="70" width="4" height="12" rx="2" fill="#7c5a3a"/>
+    </symbol>
+    <symbol id="ill-hero" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e3a5f"/><stop offset="1" stop-color="#0f1f33"/></linearGradient>
+      <radialGradient id="hl" cx=".75" cy=".55" r=".55"><stop offset="0" stop-color="#3b6ea8" stop-opacity=".55"/><stop offset="1" stop-color="#3b6ea8" stop-opacity="0"/></radialGradient></defs>
+      <rect width="400" height="320" fill="url(#hg)"/><rect width="400" height="320" fill="url(#hl)"/>
+      <g opacity=".14" fill="none" stroke="#fff" stroke-width="1"><path d="M0 250h400M0 270h400M0 290h400"/></g>
+      <g transform="translate(205 105) scale(1.75)"><use href="#ill-salad"/></g>
+      <g transform="translate(330 70) rotate(18)"><rect x="0" y="0" width="8" height="90" rx="4" fill="#cbd5e1"/><rect x="-6" y="-26" width="20" height="30" rx="8" fill="#cbd5e1"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="layout">
+  <div>
+    <div class="states" role="group" aria-label="시안 상태">
+      <button data-s="home" aria-pressed="true">홈</button>
+      <button data-s="palette" aria-pressed="false">+ 기록 팔레트</button>
+      <button data-s="diet" aria-pressed="false">식단</button>
+      <button data-s="supp" aria-pressed="false">영양제</button>
+      <button data-s="strength" aria-pressed="false">근력</button>
+      <button data-s="walk" aria-pressed="false">산책</button>
+      <button data-s="chat" aria-pressed="false">코치 열림</button>
+      <button data-s="crisis" aria-pressed="false">위기 응답</button>
+      <button data-s="voice" aria-pressed="false">음성 입력</button>
+    </div>
+
+    <div class="phone">
+      <div class="scroll">
+        <div class="hero">
+          <img class="bg" src="img/web/hero-dinner.jpg" alt="">
+          <div class="h-top"><span class="loc">목표 1,800kcal · D+23 ›</span>
+            <button class="ib" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+            <button class="ib" aria-label="알림"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg></button>
+          </div>
+          <span class="notice">오늘 점심 기록이 아직 없어요 ✕</span>
+          <h1>단백질 채우는<br>이번 주 저녁 식단</h1>
+          <p>남은 열량 560kcal에 맞춰 골랐어요</p>
+          <span class="pg">1 / 5</span>
+          <div class="quick">
+            <button><img class="pi" src="img/web/icons/ic-search.png" alt="">검색</button><button><img class="pi" src="img/web/icons/ic-camera.png" alt="">사진으로 기록</button><button><img class="pi" src="img/web/icons/ic-route.png" alt="">산책 코스</button><button><img class="pi" src="img/web/icons/ic-glucose.png" alt="">혈당</button>
+          </div>
+        </div>
+
+        <div class="svc">
+          <div class="w"><span class="k">빠르게 남기는</span><b>오늘 기록</b>
+            <div class="item" data-go="diet"><i class="tint-m"><img class="" src="img/web/icons/ic-meal.png" alt=""></i>식단 기록 ›</div>
+            <div class="item" data-go="strength"><i class="tint-a"><img class="" src="img/web/icons/ic-workout.png" alt=""></i>운동 기록 ›</div>
+            <div class="item" data-go="diet"><i class="tint-r"><img class="" src="img/web/icons/ic-glucose.png" alt=""></i>혈당·혈압 ›</div>
+          </div>
+          <div class="d" data-go="chat"><span class="k">기록을 보고 답하는</span><b>AI 코치</b><span class="go">대화 시작 ›</span><span class="art"><img src="img/web/icons/ic-coach.png" width="62" height="62" alt=""></span></div>
+          <div class="s" data-go="walk"><b>산책 코스</b><span>집 근처 4.2km</span><span class="art"><img src="img/web/icons/ic-route.png" width="46" height="46" alt=""></span></div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>오늘 저녁 뭐 먹지? <img class="hi" src="img/web/icons/ic-plate.png" alt=""><br>남은 열량에 딱 맞게</h2><a href="#">더보기 ›</a></div>
+          <div class="rail">
+            <div class="prod"><div class="thumb"><img src="img/web/food-salad.jpg" alt="닭가슴살 현미 샐러드"><span class="badge b">고단백</span></div><div class="tags"><span class="t1">저당</span><span class="t2">NEW</span></div><div class="pname">닭가슴살 현미 샐러드</div><div class="pval">420kcal</div><div class="pmeta">단백질 34g</div></div>
+            <div class="prod"><div class="thumb"><img src="img/web/food-doenjang.jpg" alt="두부 된장찌개 정식"><span class="badge">추천</span></div><div class="tags"><span class="t1">국물</span><span class="t2">BEST</span></div><div class="pname">두부 된장찌개 정식</div><div class="pval">510kcal</div><div class="pmeta">단백질 28g</div></div>
+            <div class="prod"><div class="thumb"><img src="img/web/food-mackerel.jpg" alt="고등어구이 반상"></div><div class="tags"><span class="t1">오메가3</span></div><div class="pname">고등어구이 반상</div><div class="pval">540kcal</div><div class="pmeta">단백질 31g</div></div>
+            <div class="prod"><div class="thumb"><img src="img/web/food-onigiri.jpg" alt="참치 주먹밥"></div><div class="tags"><span class="t1">간편</span></div><div class="pname">참치 주먹밥 2개</div><div class="pval">380kcal</div><div class="pmeta">단백질 14g</div></div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>진행중인 챌린지</h2><a href="#">더보기 ›</a></div>
+          <div class="promo"><b>하루 7천 보<br>2주 걷기 챌린지</b><span>11/11 ~ 11/24 · 8일째</span><span class="ph"><img src="img/web/fit-shoes.jpg" alt=""></span></div>
+          <div class="lrow"><div class="thumb tint-b"><img class="icon" src="img/web/icons/ic-walking.png" alt=""></div><div><div class="tags"><span class="t1">걷기</span><span class="t2">진행 중</span></div><div class="pname">오늘 6,812보</div><div class="pval"><em>97%</em>7,000보까지 188보</div></div></div>
+          <div class="lrow"><div class="thumb tint-m"><img class="icon" src="img/web/icons/ic-water.png" alt=""></div><div><div class="tags"><span class="t1">수분</span></div><div class="pname">물 2L 마시기</div><div class="pval"><em>60%</em>1.2L / 2L</div></div></div>
+          <div class="dots"><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="strip"><div><b>이번 주 근력 3회 완료!</b><span>하체는 어제 했어요 · 오늘은 상체 추천</span></div><span class="ph"><img src="img/web/fit-dumbbell.jpg" alt=""></span></div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>꾸준함이 쌓이면 <img class="hi" src="img/web/icons/ic-flame.png" alt=""><br>이번 주 많이 한 운동</h2></div>
+          <div class="rank">
+            <div class="r"><span class="no">1</span><div class="thumb tint-b"><img class="icon" src="img/web/icons/ic-walking.png" alt=""></div><div><div class="tags"><span class="t1">유산소</span></div><div class="pname">걷기</div><div class="pval">4회 · 21.6km</div></div></div>
+            <div class="r"><span class="no">2</span><div class="thumb tint-a"><img class="icon" src="img/web/icons/ic-barbell.png" alt=""></div><div><div class="tags"><span class="t1">근력</span></div><div class="pname">스쿼트</div><div class="pval">2회 · 최고 60kg</div></div></div>
+            <div class="r"><span class="no">3</span><div class="thumb tint-m"><img class="icon" src="img/web/icons/ic-stretch.png" alt=""></div><div><div class="tags"><span class="t1">회복</span></div><div class="pname">스트레칭</div><div class="pval">2회 · 30분</div></div></div>
+          </div>
+          <p class="hint" style="margin-top:14px">예시 데이터 (2026-11-17 데모 사용자)</p>
+        </div>
+        <div class="foot-space"></div>
+      </div>
+
+      <nav class="bn" aria-label="하단 메뉴">
+        <button class="on" data-go="home" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>홈</button>
+        <button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>기록함</button>
+        <button class="mid" data-go="palette" aria-label="기록하기"><span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>마이</button>
+        <button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>전체보기</button>
+      </nav>
+
+      <span class="nudge" id="nudge">점심 기록, 같이 정리할까요?</span>
+      <button class="coach-fab" id="fab" aria-label="AI 코치 열기">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg>
+        <span class="dot"></span>
+      </button>
+
+      <div class="page" id="page" hidden></div>
+
+      <div id="palWrap" hidden>
+        <div class="scrim" data-go="close-pal"></div>
+        <div class="pal" role="dialog" aria-label="기록하기">
+          <div class="grab"></div>
+          <h3>무엇을 기록할까요?</h3>
+          <div class="pal-grid">
+            <button data-go="diet"><img src="img/web/icons/ic-meal.png" alt="">식단<small>식단코치</small></button>
+            <button data-go="diet"><img src="img/web/icons/ic-camera.png" alt="">사진으로 식단<small>인식 후 확인</small></button>
+            <button data-go="supp"><img src="img/web/icons/ic-pill.png" alt="">영양제<small>복용 체크</small></button>
+            <button data-go="strength"><img src="img/web/icons/ic-workout.png" alt="">근력 운동<small>근력 코치</small></button>
+            <button data-go="walk"><img src="img/web/icons/ic-walking.png" alt="">산책 · 걷기<small>Pace 코치</small></button>
+            <button data-go="diet"><img src="img/web/icons/ic-glucose.png" alt="">혈당<small>공복 · 식후</small></button>
+            <button data-go="diet"><img src="img/web/icons/ic-heart.png" alt="">혈압<small>맥박 함께</small></button>
+            <button data-go="diet"><img src="img/web/icons/ic-water.png" alt="">수분<small>+250ml</small></button>
+            <button data-go="diet"><img src="img/web/icons/ic-scale.png" alt="">체중<small>체성분</small></button>
+          </div>
+          <button class="pal-close" data-go="close-pal">닫기</button>
+        </div>
+      </div>
+
+      <div id="sheetWrap" hidden>
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" role="dialog" aria-label="AI 코치">
+          <div class="grab"></div>
+          <div class="c-top">
+            <span class="c-av pic"><img class="" src="img/web/icons/ic-coach.png" alt=""></span>
+            <div class="c-name"><b>AI 코치</b><span>내 기록으로 답해요 · 기기 안에서 처리</span></div>
+            <button class="c-icon" id="ttsBtn" aria-pressed="false" aria-label="음성 답변"><svg><use href="#i-speaker"/></svg></button>
+            <button class="c-icon" id="close" aria-label="닫기"><svg><use href="#i-x"/></svg></button>
+          </div>
+          <div class="seg" role="tablist">
+            <button role="tab" data-t="chat" aria-selected="true">대화</button>
+            <button role="tab" data-t="sum" aria-selected="false">오늘 요약</button>
+            <button role="tab" data-t="help" aria-selected="false">도움받기</button>
+          </div>
+          <div class="s-body" id="msgs"></div>
+          <div id="foot"></div>
+          <div class="home-ind"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h1>웰니스 코치 시안</h1>
+    <p class="lede">흔한 국내 쇼핑 앱 화면 구성(사진 배너 · 알약 바로가기 · 서비스 카드 · 가로 카드 · 순위)을 빌려 만들었습니다. 대표색은 파랑이고, 상품 자리에 식단 · 운동 · 챌린지를 넣었습니다.</p>
+    <section><h2>화면별 대응</h2><ul>
+      <li><b>사진 배너</b>(위치 줄 · 알림 칩 · 큰 두 줄 제목 · 1/5) → 오늘 식단 추천 배너</li>
+      <li><b>알약 바로가기</b>(검색 · 재고찾기 · 점포찾기) → 검색 · 사진으로 기록 · 산책 코스 · 혈당</li>
+      <li><b>서비스 카드</b>(큰 카드 하나 + 작은 카드 둘) → 오늘 기록 + <b>어두운 AI 코치 카드</b> + 산책 코스</li>
+      <li><b>두 줄 제목 + 가로 상품 카드</b>(배지 · 색 태그 · 가격) → 저녁 추천(배지 · 태그 · kcal · 단백질)</li>
+      <li><b>기획전 배너 + 세로 목록</b> → 진행중인 챌린지</li>
+      <li><b>빨간 띠 배너</b> → 파란 띠(이번 주 근력)</li>
+      <li><b>인기 상품 순위</b> → 이번 주 많이 한 운동</li>
+      <li><b>흰 하단 바 + 가운데 둥근 사각 버튼</b>(바코드) → 기록</li>
+      <li><b>바코드 시트</b>(제목 · 항상보기 스위치 · 밑줄 탭 · 하단 타일 2개) → AI 코치 시트(음성 답변 스위치 · 대화/오늘 요약/도움받기 · 요약 타일)</li>
+      <li><b>이벤트 안내 목록</b>(동그란 색 아이콘 줄) → 도움받기 탭의 상담 창구 목록</li>
+    </ul></section>
+    <section><h2>AI 코치 화면 (챗봇 레퍼런스 반영)</h2><ul>
+      <li><b>바탕:</b> 옅은 청회색 위에 그림자가 부드러운 흰 카드</li>
+      <li><b>머리:</b> 말꼬리 달린 파란 원형 아바타 + 이름 · 설명 + 동그란 아이콘 버튼(음성 답변, 닫기)</li>
+      <li><b>탭:</b> 밑줄 탭 대신 알약 모양 선택 버튼</li>
+      <li><b>말풍선:</b> 꼬리 달린 흰 말풍선(코치, 작은 아바타 옆) · 파란 말풍선(나), 입력 중 점 3개</li>
+      <li><b>추천 질문:</b> 아바타 + 알약 + 화살표 줄</li>
+      <li><b>숫자 결과:</b> 점선으로 나눈 흰 카드</li>
+      <li><b>오늘 요약 · 도움받기:</b> 글 왼쪽 + 동그란 아이콘 버튼 오른쪽 카드 줄</li>
+      <li><b>입력:</b> 파란 원형 마이크 + 알약 입력칸 + 원형 보내기, 맨 아래 홈 표시 막대</li>
+    </ul></section>
+    <section><h2>가져오지 않은 것</h2><ul>
+      <li>초록색, 로고, 인물 · 상품 사진, 문구, 결제 · 상품 데이터</li>
+      <li>사진은 GPT Image 2.6으로 새로 만든 7장(배너 · 음식 4 · 운동 2, <code>docs/mockups/img/</code>), 카드 · 목록 아이콘 18개도 GPT Image 2.6 3D 아이콘(<code>img/icons/</code>)이고, 하단 탭 · 닫기 · 보내기 같은 작은 UI 기호만 SVG입니다. 이모지는 쓰지 않습니다</li>
+    </ul></section>
+    <section><h2>움직이는 화면 (2026-11-18)</h2><ul>
+      <li><b>근력 운동:</b> 오늘 계획 → 운동 시작 → 세트마다 kg · 횟수 · 완료 → 운동 끝내기. 지난번 세트를 다 채운 종목은 증량을 제안해요</li>
+      <li><b>AI 코치:</b> 추천 질문을 누르면 실제 서버 코드가 데모 기록으로 계산한 답이 나와요. 위기 문장은 상담 안내로 바뀌어요</li>
+      <li><b>홈 숫자:</b> 걸음 · 이번 주 근력 · 운동 순위는 기록에서 계산한 값, 식단 추천과 물은 "예시"</li>
+      <li>이 시안은 서버 없이 미리 계산한 데모 데이터로 움직이고, 저장하지 않아요. 앱에서는 PC(WSL) 서버에 실제로 저장돼요</li>
+    </ul></section>
+    <section><h2>정해 주셔야 할 것</h2><ul>
+      <li>가운데 버튼: 기록(지금) 또는 AI 코치</li>
+      <li>하단 탭 이름: 홈 · 기록함 · [기록] · 마이 · 전체보기</li>
+      <li>홈 섹션 순서와 개수</li>
+    </ul></section>
+  </div>
+</div>
+
+<script>
+if (new URLSearchParams(location.search).has('app')) document.documentElement.classList.add('app');
+const $ = id => document.getElementById(id);
+const u = (id, cls = '') => `<svg class="${cls}"><use href="#${id}"/></svg>`;
+const av = `<span class="av-s pic"><img src="img/web/icons/ic-coach.png" alt=""></span>`;
+const bot = html => `<div class="mrow">${av}<div class="bub bot">${html}</div></div>`;
+const me = text => `<div class="mrow me"><div class="bub me">${text}</div></div>`;
+const tts = `<span class="tts">${u('i-speaker', 'ico')}듣기</span>`;
+const qr = text => `<div class="qr"><span class="av-s">${u('i-user')}</span><button>${text}${u('i-arrow')}</button></div>`;
+const rc = (title, sub, icon, cls = '') => `<div class="rc"><div class="tx"><b>${title}</b><span>${sub}</span></div><span class="rbtn ${cls}"><img src="img/web/icons/${icon}.png" alt=""></span></div>`;
+const HELP = rc('자살예방 상담전화 109', '24시간 · 전화와 문자 모두 가능', 'ic-phone')
+  + rc("카카오톡 '마들랜'", '24시간 · 채팅으로 상담', 'ic-chat')
+  + rc('응급 119', '이미 다쳤거나 위험이 있을 때', 'ic-siren');
+const BODY = {
+  chat: `<span class="day">오늘 오후 7:12</span>
+    ${bot('안녕하세요! 오늘 점심 기록이 비어 있어요. 무엇을 도와드릴까요?')}
+    ${qr('이번 주 운동 어땠어?')}${qr('오늘 식단 평가해줘')}${qr('짧은 산책 코스 추천해줘')}
+    ${me('이번 주 운동 어땠어?')}
+    ${bot(`이번 주는 근력 3번, 걷기 4번 했어요.
+      <div class="rcard"><div class="k">운동 기록 · 11/11~11/17</div><div class="dl"></div>
+      <div class="nums"><div><b>3회</b>근력</div><div><b>4회</b>걷기</div><div><b>21.6km</b>걸은 거리</div></div></div>
+      하체는 어제 해서 오늘은 상체나 가벼운 산책이 좋겠어요.<br>${tts}`)}
+    ${me('요즘 다 귀찮고 지치네')}
+    ${bot(`이번 주에 꾸준히 해서 지칠 만해요. 오늘은 쉬는 날로 정해도 괜찮아요.
+      <div class="checkin">혹시 요즘 혼자 감당하기 힘들 만큼 지친 날이 있다면, 자살예방 상담전화 109(24시간, 문자 가능)나 카카오톡 '마들랜'에서 언제든 이야기를 나눌 수 있어요.</div>${tts}`)}
+    <div class="mrow">${av}<div class="typing"><i></i><i></i><i></i></div></div>`,
+  sum: rc('남은 열량', '목표 1,800kcal 중 1,240kcal 먹음', 'ic-meal').replace('<b>남은 열량</b>', '<b>남은 열량 <span class="n">560kcal</span></b>')
+    + rc('걸음 6,812보', '목표 10,000보의 68%', 'ic-walking')
+    + rc('공복 혈당 96 mg/dL', '7일 평균 101', 'ic-glucose')
+    + rc('식후 혈당 알림', '점심 · 저녁 2시간 뒤', 'ic-bell')
+    + `<button class="pill-btn blue">코치에게 오늘 평가 받기</button>`,
+  help: `<p class="hint">힘들 때 코치에게 말하지 않아도 바로 연락할 수 있어요</p>${HELP}`,
+  crisis: `${me('이제 그만 편해지고 싶다')}
+    <div class="alert" role="alert"><h4>지금 이야기를 들어 줄 곳이 있어요</h4><p>많이 힘드신 것 같아요. 혼자 견디지 않으셨으면 해요.</p></div>${HELP}`,
+  voice: `<div class="listen"><span class="big">${u('i-mic')}</span><div class="wave"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="stt">"오늘 점심 김치찌개 먹었어"</div>듣고 있어요 · 말을 마치면 자동으로 보내요</div>`,
+};
+const input = live => `<div class="c-input"><button class="mic ${live ? 'live' : ''}" id="mic" aria-label="음성으로 말하기">${u('i-mic')}</button>
+  <div class="field">${live ? '말하는 중…' : '메시지를 입력하세요'}</div><button class="send" aria-label="보내기">${u('i-send')}</button></div>`;
+const ICO = n => `img/web/icons/${n}.png`;
+const ptop = (title, right = '') => `<div class="p-top"><button class="ib" data-go="home" aria-label="뒤로">${u('i-back')}</button><h2>${title}</h2>${right}</div>`;
+const bar = (pct, cls = '') => `<div class="bar ${cls}"><i style="width:${pct}%"></i></div>`;
+const days = `<div class="dstrip">${[['월', 11], ['화', 12], ['수', 13], ['목', 14], ['금', 15], ['토', 16], ['일', 17]].map(([d, n], i) => `<div class="${i === 6 ? 'on' : i < 6 ? 'dot' : ''}">${d}<b>${n}</b></div>`).join('')}</div>`;
+const CATS = [['rice', '밥류'], ['porridge', '죽·스프'], ['noodle', '면·만두'], ['soup', '국·탕'], ['jjigae', '찌개·전골'], ['steamed', '찜'], ['grill', '구이'], ['jeon', '전·부침'], ['stirfry', '볶음'], ['braised', '조림'], ['namul', '나물'], ['saengchae', '생채·무침'], ['kimchi', '김치'], ['pickle', '장아찌'], ['jeotgal', '젓갈'], ['sauce', '장·양념'], ['fried', '튀김'], ['bread', '빵·과자'], ['drink', '음료·차'], ['dairy', '유제품'], ['meat', '고기·생선'], ['grain', '곡류·서류'], ['legume', '콩·견과'], ['vegetable', '채소·해조'], ['fruit', '과일']];
+const PAGES = {
+  diet: ptop('식단', `<button class="ib" aria-label="달력">${u('i-cal')}</button>`) + days + `
+    <div class="p-sec"><div class="kcal">
+      <div class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--line)" stroke-width="3.4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--pri)" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="67.2 97.4"/></svg>
+        <div><b>560</b>남은 kcal</div></div>
+      <div class="macros">
+        <div class="macro-r"><div><span>탄수화물</span><span>142 / 225g</span></div>${bar(63)}</div>
+        <div class="macro-r"><div><span>단백질</span><span>68 / 90g</span></div>${bar(76)}</div>
+        <div class="macro-r"><div><span>지방</span><span>39 / 60g</span></div>${bar(65)}</div>
+      </div></div></div>
+    <div class="p-sec"><h3>오늘 끼니 <a href="#">전체 기록 ›</a></h3>
+      <div class="meal"><span class="ph"><img src="img/web/food-onigiri.jpg" alt=""></span><div class="tx"><b>아침</b><span>참치 주먹밥 2개 · 두유</span></div><span class="k">520</span></div>
+      <div class="meal empty"><span class="ph">+</span><div class="tx"><b>점심</b><span>아직 기록이 없어요</span></div><span class="k">기록 ›</span></div>
+      <div class="meal"><span class="ph"><img src="img/web/food-salad.jpg" alt=""></span><div class="tx"><b>저녁 (계획)</b><span>닭가슴살 현미 샐러드 · 코치 추천</span></div><span class="k">420</span></div>
+      <div class="meal"><span class="ph"><img src="img/web/food-yogurt.jpg" alt=""></span><div class="tx"><b>간식</b><span>그릭요거트 · 아몬드</span></div><span class="k">300</span></div>
+    </div>
+    <div class="p-sec"><h3>분류로 찾기 <a href="#">전체 25 ›</a></h3><div class="cats">${CATS.map(([k, l]) => `<button><img src="img/web/food-cat/cat-${k}.jpg" alt="">${l}</button>`).join('')}</div>
+      <p class="hint" style="text-align:left;margin-top:8px">사진 없이 기록한 음식에는 이 분류 이미지가 보여요 (식약처 식품대분류 25개)</p></div>
+    <div class="p-sec"><h3>몸 기록 <a href="#">추세 ›</a></h3>
+      <div class="mini"><div><div class="t">공복 혈당</div><div class="n">96<small>mg/dL</small></div></div><div><div class="t">수분</div><div class="n">1.2<small>/ 2L</small></div></div>
+      <div><div class="t">체중</div><div class="n">68.4<small>kg</small></div></div><div data-go="supp"><div class="t">영양제</div><div class="n">2/3<small>복용 ›</small></div></div></div></div>
+    <div class="p-sec"><button class="btn-pill"><img src="${ICO('ic-camera')}" alt="">사진으로 기록</button></div>
+    <p class="p-note">영양 값은 식약처 식품영양성분 DB · 농진청 국가표준식품성분표 기준 (예시 데이터)</p>`,
+  supp: ptop('영양제', `<button class="ib" aria-label="검색">${u('i-search')}</button>`) + `
+    <div class="banner"><img src="img/web/supp-banner.jpg" alt=""><div class="tx"><span>내 영양제</span><b>3가지<br>하루 두 번</b><em>아침 8:00 · 저녁 9:00</em></div></div>
+    <div class="p-sec"><div class="prog"><div><span>오늘 복용</span><br><b>2 / 3</b></div><span>5일 연속 다 챙겼어요</span></div>${bar(67)}</div>
+    <div class="p-sec"><h3>오늘 일정 <a href="#">편집 ›</a></h3>
+      <div class="slot">아침 8:00</div>
+      <div class="chk done"><img src="${ICO('ic-supp-multi')}" alt=""><div class="tx"><b>종합비타민</b><span>1정 · 식후</span></div><i>✓</i></div>
+      <div class="chk done"><img src="${ICO('ic-supp-omega')}" alt=""><div class="tx"><b>오메가3</b><span>1캡슐 · 식후</span></div><i>✓</i></div>
+      <div class="slot">저녁 9:00</div>
+      <div class="chk"><img src="${ICO('ic-supp-mag')}" alt=""><div class="tx"><b>마그네슘</b><span>1정 · 자기 전</span></div><i></i></div></div>
+    <div class="p-sec"><h3>성분 분석</h3>
+      <div class="ana"><span class="nm">비타민 D</span><span class="v">1,000 IU</span><span class="tg ok">적정</span></div>
+      <div class="ana"><span class="nm">마그네슘</span><span class="v">350 mg</span><span class="tg warn">상한 근접</span></div>
+      <div class="ana"><span class="nm">비타민 B군</span><span class="v">2개 제품</span><span class="tg b">중복</span></div>
+      <div class="ana"><span class="nm">칼슘</span><span class="v">식단 포함 610 mg</span><span class="tg bad">부족</span></div></div>
+    <div class="p-sec"><button class="btn-pill soft">+ 영양제 추가 (제품 검색)</button></div>
+    <p class="p-note">기준: 2025 한국인 영양소 섭취기준 · 식약처 건강기능식품 정보. 진단이나 처방이 아니며, 약을 먹고 있다면 의사 · 약사와 상의하세요. (예시 데이터)</p>`,
+  strength: ptop('근력 운동', `<button class="ib" aria-label="기록">${u('i-cal')}</button>`) + `
+    <div class="banner dark"><img src="img/web/strength-banner.jpg" alt=""><div class="tx"><span>오늘 계획</span><b>상체 A<br>4종목 · 약 50분</b><em>하체는 어제 했어요</em></div></div>
+    <div class="p-sec"><h3>종목 <a href="#">바꾸기 ›</a></h3>
+      <div class="ex"><img class="exi" src="${ICO('ic-ex-bench')}" alt=""><div class="tx"><b>벤치프레스</b><span>4세트 × 8회 · 62.5kg</span></div><span class="tg b">+2.5kg</span></div>
+      <div class="ex"><img class="exi" src="${ICO('ic-barbell')}" alt=""><div class="tx"><b>바벨 로우</b><span>4세트 × 8회 · 50kg</span></div><span class="tg ok">유지</span></div>
+      <div class="ex"><img class="exi" src="${ICO('ic-workout')}" alt=""><div class="tx"><b>오버헤드 프레스</b><span>3세트 × 10회 · 35kg</span></div><span class="tg ok">유지</span></div>
+      <div class="ex"><img class="exi" src="${ICO('ic-ex-latpull')}" alt=""><div class="tx"><b>랫풀다운</b><span>3세트 × 12회 · 45kg</span></div><span class="tg b">+2.5kg</span></div>
+      <div style="margin-top:14px"><button class="btn-pill">운동 시작</button></div></div>
+    <div class="p-sec"><h3>근육 회복도 <a href="#">몸 지도 ›</a></h3><div class="musc">
+      <div>가슴${bar(100)}<span>100%</span></div><div>등${bar(92)}<span>92%</span></div>
+      <div>어깨${bar(100)}<span>100%</span></div><div class="low">하체${bar(45, '')}<span>45%</span></div></div></div>
+    <div class="p-sec"><h3>기록</h3><div class="mini">
+      <div><div class="t">스쿼트 1RM 어림</div><div class="n">78<small>kg ▲3</small></div></div>
+      <div><div class="t">이번 주 볼륨</div><div class="n">12,450<small>kg</small></div></div></div></div>
+    <p class="p-note">1RM과 회복도는 어림값입니다. 지난번 세트를 모두 채우면 상체 +2.5kg · 하체 +5kg을 제안해요. (예시 데이터)</p>`,
+  walk: ptop('산책', `<button class="ib" aria-label="기록">${u('i-cal')}</button>`) + `
+    <div class="map"><img src="img/web/walk-map.jpg" alt="산책 코스 지도">
+      <span class="chip">하천 산책로 · 4.2km · 약 55분</span></div>
+    <div class="p-sec"><div class="go-row"><button class="go-btn">기록<br>시작</button><div class="tx">
+      <div class="tgl">음성 안내 (1km마다)<span class="sw on"></span></div><div class="tgl">목표 거리 4km<span class="sw on"></span></div><div class="tgl">자동 휴식 감지<span class="sw on"></span></div></div></div></div>
+    <div class="p-sec"><h3>이번 주</h3><div class="stats4">
+      <div><span>걷기</span><b>4회</b></div><div><span>거리</span><b>21.6km</b></div><div><span>시간</span><b>3시간 40분</b></div><div><span>평균 페이스</span><b>10'11"/km</b></div></div></div>
+    <div class="p-sec"><h3>추천 코스 <a href="#">지도 ›</a></h3>
+      <div class="course"><img class="cph" src="img/web/course-park.jpg" alt=""><div class="tx"><b>동네 공원 한 바퀴</b><span>2.1km · 약 30분 · 오르막 없음</span></div><span class="tg ok">짧게</span></div>
+      <div class="course"><img class="cph" src="img/web/course-river.jpg" alt=""><div class="tx"><b>하천 산책로</b><span>4.2km · 약 55분 · 오늘 목표에 맞음</span></div><span class="tg b">추천</span></div>
+      <div class="course"><img src="${ICO('ic-walking')}" alt=""><div class="tx"><b>지난번 기록 다시 걷기</b><span>11/16 · 3.8km · 52분</span></div><span class="tg warn">GPX</span></div></div>
+    <p class="p-note">위치 기록은 이 기기에만 저장돼요. 코스: 공공 걷기길 · 도시공원 공개 데이터. (예시 데이터)</p>`,
+};
+let state = 'home', tab = 'chat', page = 'home', ov = 'none';
+function render() {
+  const cur = ov === 'none' ? page : ov;
+  document.querySelectorAll('.states button').forEach(b => b.setAttribute('aria-pressed', b.dataset.s === cur));
+  const pg = $('page'); pg.hidden = page === 'home';
+  if (page !== 'home' && pg.dataset.p !== page) { pg.innerHTML = PAGES[page]; pg.dataset.p = page; pg.scrollTop = 0; }
+  document.querySelector('nav.bn button').classList.toggle('on', page === 'home');
+  $('palWrap').hidden = ov !== 'palette';
+  const open = ['chat', 'crisis', 'voice'].includes(ov);
+  $('sheetWrap').hidden = !open; $('fab').hidden = open || ov === 'palette'; $('nudge').hidden = page !== 'home' || ov !== 'none';
+  if (!open) return;
+  state = ov;
+  const key = state === 'chat' ? tab : state;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === (state === 'chat' ? tab : 'chat')));
+  $('ttsBtn').setAttribute('aria-pressed', state === 'voice' || $('ttsBtn').dataset.on === '1');
+  $('msgs').innerHTML = BODY[key];
+  $('foot').innerHTML = state === 'crisis' ? '<button class="pill-btn">지금 109에 연락하기</button>' : key === 'chat' || key === 'voice' ? input(state === 'voice') : '';
+  const mic = $('mic'); if (mic) mic.onclick = () => set(state === 'voice' ? 'chat' : 'voice');
+}
+const PAGE_KEYS = ['home', 'diet', 'supp', 'strength', 'walk'];
+const set = s => {
+  if (PAGE_KEYS.includes(s)) { page = s; ov = 'none'; }
+  else if (s === 'close-pal') ov = 'none';
+  else { ov = s; if (s === 'chat') tab = 'chat'; }
+  render();
+};
+document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); set(g.dataset.go); } });
+document.querySelectorAll('.states button').forEach(b => b.onclick = () => set(b.dataset.s));
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { ov = 'chat'; tab = b.dataset.t; render(); });
+$('fab').onclick = () => set('chat');
+$('ttsBtn').onclick = () => { const b = $('ttsBtn'); b.dataset.on = b.dataset.on === '1' ? '0' : '1'; b.setAttribute('aria-pressed', b.dataset.on === '1'); };
+$('close').onclick = $('scrim').onclick = () => set('close-pal');
+
+// app.js (served next to this file by packages/agent/src/server.ts) wires the screen to the server and the phone.
+// Without the server (this file opened directly, or as an artifact) demo.js answers the same API from demo-data.js.
+document.documentElement.classList.add('live');
+for (const src of document.documentElement.classList.contains('app') ? ['app.js'] : ['demo-data.js', 'demo.js', 'app.js'])
+  document.body.append(Object.assign(document.createElement('script'), { src, async: false }));
+render();
+</script>

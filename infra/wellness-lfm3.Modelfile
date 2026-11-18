@@ -1,0 +1,8 @@
+# LFM3-1.7B for the agent: longer context than Ollama's 4096 default, sampling from the model card.
+#   ollama pull hf.co/LiquidAI/LFM3-1.7B-GGUF:Q8_0
+#   ollama create wellness-lfm3 -f infra/wellness-lfm3.Modelfile
+FROM hf.co/LiquidAI/LFM3-1.7B-GGUF:Q8_0
+PARAMETER num_ctx 32768
+PARAMETER temperature 0.1
+PARAMETER top_k 50
+PARAMETER repeat_penalty 1.1

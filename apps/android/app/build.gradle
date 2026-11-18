@@ -1,0 +1,12 @@
+plugins { id 'com.android.application' }
+android {
+  namespace 'dev.wellness.shell'
+  compileSdk 37
+  defaultConfig {
+    applicationId 'dev.wellness.shell'
+    minSdk 26
+    targetSdk 37
+    versionCode 1
+    versionName '0.1'
+  }
+}

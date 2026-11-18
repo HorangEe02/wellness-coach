@@ -1,0 +1,21 @@
+{
+  "name": "@wellness/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LangGraph agent wiring the core modules together",
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\" \"eval/*.test.ts\"",
+    "demo": "node src/cli.ts",
+    "eval:guard": "node eval/guard.eval.ts",
+    "serve": "node src/server.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.4.1",
+    "@langchain/langgraph": "^1.7.5",
+    "@wellness/core": "0.1.0"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://github.com/garrytan/gstack/docs/pregate.md#pregate-v1",
+  "runner": "node --test {files}",
+  "dependencies": {
+    "package.json": [
+      "packages/agent/test/graph.test.ts"
+    ],
+    "package-lock.json": [
+      "packages/agent/test/graph.test.ts"
+    ],
+    "packages/agent/package.json": [
+      "packages/agent/test/graph.test.ts"
+    ],
+    "packages/agent/src/cli.ts": [
+      "packages/agent/test/graph.test.ts"
+    ],
+    "infra/models.compose.yaml": [
+      "infra/infra.test.ts"
+    ],
+    "infra/wellness-lfm3.Modelfile": [
+      "infra/infra.test.ts"
+    ],
+    "packages/agent/src/models/config.ts": [
+      "packages/agent/test/models.test.ts",
+      "infra/infra.test.ts"
+    ],
+    "packages/agent/eval/guard-cases.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/reviews/gemini.json": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/reviews/codex.json": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/guard.eval.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/guard-criteria.eval.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/selfharm-cases.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/selfharm.eval.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/full.eval.ts": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/src/coach.ts": [
+      "packages/agent/test/graph.test.ts",
+      "packages/agent/test/guard.test.ts"
+    ],
+    "packages/core/package.json": [
+      "packages/core/test/shared.test.js",
+      "packages/core/test/diet.test.js",
+      "packages/core/test/strength.test.js",
+      "packages/core/test/pace.test.js"
+    ],
+    "packages/agent/src/models/llmchoice.ts": [
+      "packages/agent/test/models.test.ts"
+    ],
+    "packages/agent/eval/reviews/selfharm-gemini.json": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "packages/agent/eval/reviews/selfharm-codex.json": [
+      "packages/agent/eval/eval-data.test.ts"
+    ],
+    "tools/data/fetch.mjs": [
+      "tools/data/fetch.test.mjs"
+    ],
+    "packages/agent/src/server.ts": [
+      "packages/agent/test/server.test.ts"
+    ],
+    "docs/mockups/floating-coach.html": [
+      "packages/agent/test/server.test.ts"
+    ],
+    "docs/mockups/app.js": [
+      "packages/agent/test/server.test.ts"
+    ],
+    "packages/agent/src/store.ts": [
+      "packages/agent/test/server.test.ts"
+    ],
+    "tools/data/build-foods.mjs": [
+      "tools/data/build-foods.test.mjs"
+    ],
+    "packages/core/data/foods.json": [
+      "tools/data/build-foods.test.mjs"
+    ],
+    "tools/data/compare-foods.mjs": [
+      "tools/data/build-foods.test.mjs"
+    ]
+  }
+}

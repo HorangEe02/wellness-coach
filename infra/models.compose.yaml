@@ -1,0 +1,29 @@
+# Decision-model servers (llama.cpp CUDA in Docker/WSL2). See docs/MODELS.md §3.
+# Docker instead of the Windows llama.cpp build: Smart App Control blocks unsigned Windows binaries on this PC.
+#
+#   MODELS_DIR=C:/Users/<you>/models docker compose -f infra/models.compose.yaml up -d
+#
+# Both bind to 127.0.0.1 only. LFM3 (generation) runs in Ollama, not here.
+x-llama: &llama
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda
+  restart: unless-stopped
+  volumes:
+    - ${MODELS_DIR:?set MODELS_DIR to the folder holding d1-2B/ and laya-multilingual/}:/models:ro
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+services:
+  d1:
+    <<: *llama
+    # -b/-ub 8192: a question is read in one batch, and a picture takes up to half of -ub (d1-2B-GGUF card)
+    command: -m /models/d1-2B/d1-2B-Q8_0.gguf --mmproj /models/d1-2B/mmproj-d1-2B-Q8_0.gguf -ngl 99 -b 8192 -ub 8192 --host 0.0.0.0 --port 8080
+    ports: ["127.0.0.1:8081:8080"]
+  laya:
+    <<: *llama
+    command: -m /models/laya-multilingual/Laya-Multilingual-Q8_0.gguf -ngl 99 -c 1024 -b 1024 -ub 1024 --host 0.0.0.0 --port 8080
+    ports: ["127.0.0.1:8082:8080"]

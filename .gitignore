@@ -1,0 +1,19 @@
+node_modules/
+.omc/
+.venv/
+__pycache__/
+# model weights live outside the repo (see docs/MODELS.md)
+*.gguf
+*.safetensors
+.env
+.env.*
+# public-data API keys must never be committed (Pace-Coach kept them in these files)
+*_api.txt
+.data-go-kr-key
+*.pmtiles
+
+# public-data downloads stay out of git (docs/DATA.md)
+data-raw/
+
+# built standalone mockup (node tools/mockup/build-standalone.mjs)
+docs/mockups/dist/
